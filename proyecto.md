@@ -4,7 +4,7 @@
 
 En el presente trabajo se analizará el repositorio de datos abiertos de la Secretaría de Salud Federal referentes a la pandemia de COVID-19 durante el año 2021 en nuestro país. 
 
-La fuente de los datos es la misma Secretaría de Salud, en su apartado de [datos abiertos](https://www.gob.mx/salud/documentos/datos-abiertos-152127). Para este análisis, tomamos los datos históricos del 2021, los cuales se encuentran almacenados en un archivo .csv (valores separados por comas) con un peso aproximado de 1.5 Gb. 
+La fuente de los datos es la misma Secretaría de Salud, en su apartado de [datos abiertos](https://www.gob.mx/salud/documentos/datos-abiertos-152127). Para este análisis, tomamos los datos históricos del 2021, los cuales se encuentran almacenados en un archivo .csv (valores separados por comas) con un peso aproximado de 1.5 Gb. Este archivo contiene todos los datos sospechosos de covid registrados en instituciones médicas del país entre el 1 de enero de 2021 y el 29 de julio de 2022. 
 
 Cada fila en esta base representa un paciente admitido en un Centro Médico del país por posible contagio de COVID-19. Las diferentes columnas representan diversas características o padecimientos del paciente, tales como su lugar de residencia, de nacimiento, la ubicación de la unidad médica donde se atendió y si era una institución pública o privada, si sufría de diabetes, hipertensión, EPOC, u otras condiciones, si pertenecía a una comunidad indígena, entre otros.
 
@@ -105,4 +105,125 @@ La query anterior nos muestra los diferentes tipos de instituciones médicas don
 |NO ESPECIFICADO|0.0009|
 |OTROS|0.0000|
 
-De la tabla anterior, podemos observar que la gran mayoría de los casos (más del 90%) fueron confirmados en instituciones públicas.
+De la tabla anterior, podemos observar que la gran mayoría de los casos (más del 90%) fueron confirmados en instituciones públicas federales.
+
+### ¿Cuántos casos resultaron en defunciones?
+
+Anteriormente vimos que se presentaron más de dos millones de casos confirmados del COVID-19 en este periodo, pero ¿cuántos de estos casos culminaron con el fallecimiento del paciente? Para ello podemos basarnos en la columna ```FECHA_DEF```, la cual asigna una fecha cuando el paciente falleció, o ```9999-99-99``` cuando sobrevivió.
+
+```SQL
+SELECT 
+	COUNT(*) AS Defunciones_Totales
+FROM
+	covid.COVID19MEXICO2021 cm 
+WHERE 
+	cm.FECHA_DEF != '9999-99-99'
+```
+Con esta query podemos obtener el número de casos positivos que resultaron en defunciones:
+
+|Defunciones_Totales|
+|-------------------|
+|180,055|
+
+Aprovechando esta misma columna, podemos obtener más información referente a las defunciones por covid, por ejemplo, ¿cuál fue el día donde se registraron más defunciones en este periodo? ¿cuantás defunciones se registraron ese día? Podemos aprovechar la función ```GROUP BY``` y ```ORDER BY``` de SQL para responder estas preguntas:
+
+```SQL
+SELECT 
+	DISTINCT (FECHA_DEF),
+	COUNT(FECHA_DEF) AS FALLECIMIENTOS
+FROM 
+	COVID19MEXICO2021 cm 
+WHERE 
+	FECHA_DEF != '9999-99-99'
+GROUP BY 
+	FECHA_DEF
+ORDER BY 
+	FALLECIMIENTOS DESC
+LIMIT 
+	5
+```
+
+Al ejecutar este query, podemos observar que el día 25 de enero de 2021 se registraron 1,506 fallecimientos por esta enfermedad, siendo el día con más fallecimientos registstrados en este periodo.
+
+|FECHA_DEF|FALLECIMIENTOS|
+|---------|--------------|
+|2021-01-25|1,506|
+|2021-01-26|1,492|
+|2021-01-24|1,449|
+|2021-01-21|1,429|
+|2021-02-01|1,423|
+
+Ya vimos como se distribuyeron las defunciones a lo largo de este periodo, pero, ¿cómo se distribuyeron a lo largo de la República? ¿cuál fue el estado que concentró la mayor cantidad de defunciones?. Para resolver estas incógnitas hacemos uso de la tabla ```Entidad``` de nuestra base de datos.
+
+```SQL
+SELECT 
+	e.ENTIDAD,
+	COUNT(cm.ID_REGISTRO) AS TOTAL
+FROM 
+	covid.COVID19MEXICO2021 AS cm 
+INNER JOIN
+	covid.Entidad AS e ON e.CLAVE = cm.ENTIDAD_UM 
+WHERE 
+	cm.FECHA_DEF != '9999-99-99'
+GROUP BY
+	e.ENTIDAD
+ORDER BY
+	TOTAL DESC
+```
+
+Al ejecutar esta query, podemos observar que la Entidad que presentó el mayor número de defunciones en este periodo fue la Ciudad de México, con 29,784 defunciones. Por otro lado, vemos que en Chiapas se registró el menor número de defunciones, con un total de 1,032.
+
+|ENTIDAD|TOTAL|
+|-------|-----|
+|CIUDAD DE MEXICO|29,764|
+|MEXICO|17,256|
+|JALISCO|12,447|
+|NUEVO LEON|10,142|
+|PUEBLA|9994|
+|VERACRUZ DE IGNACIO DE LA LLAVE|9401|
+|GUANAJUATO|7959|
+|SINALOA|5787|
+|MICHOACAN DE OCAMPO|5635|
+|BAJA CALIFORNIA|5285|
+|SONORA|4832|
+|TAMAULIPAS|4684|
+|YUCATAN|4568|
+|CHIHUAHUA|4467|
+|HIDALGO|4415|
+|SAN LUIS POTOSI|4105|
+|GUERRERO|3977|
+|COAHUILA DE ZARAGOZA|3903|
+|QUERETARO|3662|
+|OAXACA|3483|
+|MORELOS|3408|
+|TABASCO|3239|
+|QUINTANA ROO|2431|
+|AGUASCALIENTES|2278|
+|NAYARIT|2275|
+|BAJA CALIFORNIA SUR|1858|
+|DURANGO|1734|
+|ZACATECAS|1704|
+|COLIMA|1580|
+|TLAXCALA|1482|
+|CAMPECHE|1268|
+|CHIAPAS|1032|
+
+#### **Complicaciones pre-existentes**
+
+Al tener los datos de las defunciones, nos podemos preguntar si las condiciones que ya presentaban los pacientes pudieron tener un efecto en la supervivencia del paciente. Podríamos inferir esto observando el porcentaje de pacientes fallecidos que ya presentaban otras complicaciones, ya que esta información también se encuentra presente en nuestra tabla principal. Por ejemplo, utilizando la columna ```TABAQUISMO``` podemos calcular el porcentaje de defunciones que ya presentaban este padecimiento.
+
+```SQL
+SELECT
+	r.DESCRIPCION AS TABAQUISMO  ,
+	(COUNT(*) / (SELECT COUNT(*) FROM covid.COVID19MEXICO2021 cm WHERE cm.FECHA_DEF != '9999-99-99')) * 100 AS PORCENTAJE_DEF /* utilizamos una sub query para obtener el total de fallecimientos, y poder conseguir un porcentaje */
+FROM 
+	covid.COVID19MEXICO2021 cm
+INNER JOIN 
+	covid.Respuestas r ON r.CLAVE = cm.TABAQUISMO  /* los valores de la columna TABAQUISMO estan relacionados con la tabla Respuestas */ 
+WHERE 
+	FECHA_DEF != '9999-99-99'
+GROUP BY
+	r.DESCRIPCION 
+ORDER BY
+	r.DESCRIPCION DESC
+```
