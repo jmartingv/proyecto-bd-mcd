@@ -263,3 +263,7 @@ Finalmente, vemos que es poco probable que otras complicaciones no tan relevante
 ### Información adicional
 
 Si bien pudimos conseguir algunos de los datos más importantes a partir de lo que se encuentra en esta base de datos, existe aun más información por descubrir respecto a esta enfermedad y como afectó a cada unos de nosotros en el país.
+
+# Conclusión
+
+En este trabajo pudimos observar un ejemplo práctico de la utilidad que representan las bases de datos SQL para el trabajo de los científicos de datos. SQL nos ofrece una manera muy práctica no solo de almacenar la información en una base, sino también de consultarla con unas cuantas líneas de código, el cual además muchas veces es sencillo de leer. En este caso, logramos obtener información relevante de un conjunto con más de ocho millones de datos con tan solo unas cuantas líneas de código SQL.
