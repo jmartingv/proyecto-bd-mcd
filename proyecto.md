@@ -227,3 +227,39 @@ GROUP BY
 ORDER BY
 	r.DESCRIPCION DESC
 ```
+
+Sin embargo, podemos apreciar que sólo el 7% de los pacientes que fallecieron sufrían de tabaquismo, por lo que es posible que no sea un factor importante.
+
+|TABAQUISMO|PORCENTAJE_DEF|
+|----------|--------------|
+|SI|7.3783|
+|SE IGNORA|0.4388|
+|NO|92.1829|
+
+Utilizando queries similares, podemos generar la misma tabla par a diferentes padecimientos. Por ejemplo, podemos ver que solo el 2.5% de los pacientes fallecidos presentaban inmunosupresión.
+
+|INMUNOSUPRIMIDO|PORCENTAJE_DEF|
+|---------------|--------------|
+|SI|2.5059|
+|SE IGNORA|0.4071|
+|NO|97.0870|
+
+Por otro lado, el porcentaje de difuntos que presentaban algún grado de Obesidad asciende al 18%, por lo que este padecimiento sí puede ser considerado como un factor de riesgo.
+
+|OBESIDAD|PORCENTAJE_DEF|
+|--------|--------------|
+|SI|18.4682|
+|SE IGNORA|0.3466|
+|NO|81.1852|
+
+Finalmente, vemos que es poco probable que otras complicaciones no tan relevantes, indicadas en la columna ```OTRAS_COM```, pudieran tener un efecto en la supervivencia de los pacientes, ya que solo el 5% de las defunciones presentaban otro tipo de complicaciones.
+
+|OTRAS_COMPLICACIONES|PORCENTAJE_DEF|
+|--------------------|--------------|
+|SI|5.3311|
+|SE IGNORA|0.9797|
+|NO|93.6892|
+
+### Información adicional
+
+Si bien pudimos conseguir algunos de los datos más importantes a partir de lo que se encuentra en esta base de datos, existe aun más información por descubrir respecto a esta enfermedad y como afectó a cada unos de nosotros en el país.
