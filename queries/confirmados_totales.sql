@@ -1,3 +1,5 @@
+/* total de casos confirmados de covid, por tipo de clasificacion */
+
 SELECT 
 	cf.CLASIFICACION AS CLASIFICACION,
 	COUNT(cm.ID_REGISTRO) AS TOTAL
